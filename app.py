@@ -68,7 +68,6 @@ def folders(path, file_name, project_name=None, user_name=None):
 def delete_excel_folder(folder_to_delete):
     try:
         excel_path = os.path.join(os.getcwd(), excel_folder, folder_to_delete)
-        print('excel_path is', excel_path)
         if os.path.exists(excel_path):
             shutil.rmtree(excel_path)
             return "Excel folder deleted successfully"
@@ -248,4 +247,4 @@ def status():
 
 
 if __name__ == '__main__':
-    app.run(port=5656)
+    app.run()
