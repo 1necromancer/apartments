@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from datetime import datetime
 from docx.shared import Pt
 from docx import Document
+import urllib.parse
 import pandas as pd
 import os
 import re
@@ -74,10 +75,11 @@ def set_formatting(doc):
 
 
 # Process the Excel file and generate the Word document
-def process_excel(file_path):
+def process_excel(file_path, folder_name):
     file_extension = file_path.rsplit('.', 1)[1].lower()
     df_zalogoderzhatel = None
     df_zalogodatel = None
+
     # Handle CSV and Excel files accordingly
     if file_extension == 'csv':
         df_main = pd.read_csv(file_path)
@@ -99,65 +101,67 @@ def process_excel(file_path):
         df_zalogodatel = df_zalogodatel.drop(df_zalogodatel.index[0]).reset_index(drop=True)
         df_zalogodatel.columns = df_zalogodatel.columns.str.strip()
 
-    # Load the Word document template
-    doc = Document('doc_template/Проект ДКП.docx')
+    output_files = []
 
     # Extract and replace contract details
-    contract_string = df_main.iloc[0]['Договор купли продажи']
-    match = re.search(r'№\s*([^от]+?)\s+от', contract_string)
-    contract_number = match.group(1).strip() if match else None
-    date_match = re.search(r'от\s*(\d{2})\.(\d{2})\.(\d{4})', contract_string)
+    for index, row in df_main.iterrows():
+        # Load the Word document template
+        doc = Document('doc_template/Проект ДКП.docx')
+        contract_string = df_main.iloc[index]['Договор купли продажи']
+        match = re.search(r'№\s*([^от]+?)\s+от', contract_string)
+        contract_number = match.group(1).strip() if match else None
+        date_match = re.search(r'от\s*(\d{2})\.(\d{2})\.(\d{4})', contract_string)
 
-    if contract_number is not None:
-        replace_text(doc, 'P_section', contract_number)
-    if date_match is not None:
-        replace_text(doc, 'dd_p', date_match.group(1))
-        replace_text(doc, 'mm_p', date_match.group(2))
-        replace_text(doc, 'yy_p', date_match.group(3))
+        if contract_number is not None:
+            replace_text(doc, 'P_section', contract_number)
+        if date_match is not None:
+            replace_text(doc, 'dd_p', date_match.group(1))
+            replace_text(doc, 'mm_p', date_match.group(2))
+            replace_text(doc, 'yy_p', date_match.group(3))
 
-    # Replace placeholders for seller information
-    replace_text(doc, 'ТОО_продавец', df_zalogoderzhatel['Наименование компании'].iloc[0])
-    replace_text(doc, 'должность_продавца', df_zalogoderzhatel['в лице (Подписанта) — должности'].iloc[0])
-    replace_text(doc, 'ФИО_продавца', df_zalogoderzhatel['в лице (Подписанта) - Фамилии И.О.'].iloc[0])
-    replace_text(doc, 'ИИН_продавца', df_zalogoderzhatel['БИН'].iloc[0])
+        # Replace placeholders for seller information
+        replace_text(doc, 'ТОО_продавец', df_zalogoderzhatel['Наименование компании'].iloc[0])
+        replace_text(doc, 'должность_продавца', df_zalogoderzhatel['в лице (Подписанта) — должности'].iloc[0])
+        replace_text(doc, 'ФИО_продавца', df_zalogoderzhatel['в лице (Подписанта) - Фамилии И.О.'].iloc[0])
+        replace_text(doc, 'ИИН_продавца', df_zalogoderzhatel['БИН'].iloc[0])
 
-    # Replace placeholders for buyer information
-    replace_text(doc, 'должность_покупателя', df_zalogodatel['в лице (Подписанта) — должности'].iloc[0])
-    replace_text(doc, 'ФИО_покупателя', df_zalogodatel['в лице (Подписанта) - Фамилии И.О.'].iloc[0])
-    replace_text(doc, 'ИИН_покупателя', df_zalogodatel['БИН'].iloc[0])
+        # Replace placeholders for buyer information
+        replace_text(doc, 'должность_покупателя', df_zalogodatel['в лице (Подписанта) — должности'].iloc[0])
+        replace_text(doc, 'ФИО_покупателя', df_zalogodatel['в лице (Подписанта) - Фамилии И.О.'].iloc[0])
+        replace_text(doc, 'ИИН_покупателя', df_zalogodatel['БИН'].iloc[0])
 
-    # Replace apartment details
-    replace_text(doc, 'общая_площадь', df_main.iloc[0]['Общая площадь'])
-    replace_text(doc, 'дом_номер, кв. квартира_номер,', df_main.iloc[0]['Адрес квартиры'])
-    replace_text(doc, 'кадастровый_номер', df_main.iloc[0]['РКА'])
+        # Replace apartment details
+        replace_text(doc, 'общая_площадь', df_main.iloc[index]['Общая площадь'])
+        replace_text(doc, 'дом_номер, кв. квартира_номер,', df_main.iloc[index]['Адрес квартиры'])
+        replace_text(doc, 'кадастровый_номер', df_main.iloc[index]['РКА'])
 
-    # Replace ownership document details
-    replace_text(doc, 'на_основании_чего от', df_main.iloc[0]['№ договора ПДКП/дата'])
+        # Replace ownership document details
+        replace_text(doc, 'на_основании_чего от', df_main.iloc[index]['№ договора ПДКП/дата'])
 
-    # Replace sum and payment deadline
-    replace_text(doc, 'сумма_тенге', df_main.iloc[0]['Сумма уступленного долга по ПДКП (тенге)'])
+        # Replace sum and payment deadline
+        replace_text(doc, 'сумма_тенге', df_main.iloc[index]['Сумма уступленного долга по ПДКП (тенге)'])
 
-    date_value = df_main.iloc[0]['Срок полного выкупа (ПДКП)']
-    formatted_date = pd.to_datetime(date_value).strftime('%Y-%m-%d')
-    replace_text(doc, 'год_расчета', formatted_date)
+        date_value = df_main.iloc[index]['Срок полного выкупа (ПДКП)']
+        formatted_date = pd.to_datetime(date_value).strftime('%Y-%m-%d')
+        replace_text(doc, 'год_расчета', formatted_date)
 
-    # Replace seller's legal information
-    replace_text(doc, 'БИН_продавца', df_zalogoderzhatel['БИН'].iloc[0])
-    replace_text(doc, 'ИИК_продавца', df_zalogoderzhatel['IBAN'].iloc[0])
-    replace_text(doc, 'БИК_продавца', df_zalogoderzhatel['БИК'].iloc[0])
-    replace_text(doc, 'Банк_продаца', df_zalogoderzhatel['Банк'].iloc[0])
-    replace_text(doc, 'телефон_продавца', df_zalogoderzhatel['Контактные телефоны:'].iloc[0])
-    replace_text(doc, 'подпись_должность_пр', df_zalogoderzhatel['Подписант, должность'].iloc[0])
-    replace_text(doc, 'подпись_должность_пок', df_zalogodatel['Подписант, должность'].iloc[0])
+        # Replace seller's legal information
+        replace_text(doc, 'БИН_продавца', df_zalogoderzhatel['БИН'].iloc[0])
+        replace_text(doc, 'ИИК_продавца', df_zalogoderzhatel['IBAN'].iloc[0])
+        replace_text(doc, 'БИК_продавца', df_zalogoderzhatel['БИК'].iloc[0])
+        replace_text(doc, 'Банк_продаца', df_zalogoderzhatel['Банк'].iloc[0])
+        replace_text(doc, 'телефон_продавца', df_zalogoderzhatel['Контактные телефоны:'].iloc[0])
+        replace_text(doc, 'подпись_должность_пр', df_zalogoderzhatel['Подписант, должность'].iloc[0])
+        replace_text(doc, 'подпись_должность_пок', df_zalogodatel['Подписант, должность'].iloc[0])
 
-    # Apply formatting changes
-    set_formatting(doc)
+        # Apply formatting changes
+        set_formatting(doc)
 
-    # Save the processed document
-    output_filename = f'doc_result/Проект ДКП_{datetime.now().strftime("%Y%m%d%H%M%S")}.docx'
-    doc.save(output_filename)
+        output_filename = str(folders(doc_result, f'Проект ДКП_{index + 1}_{datetime.now().strftime("%Y%m%d%H%M%S")}.docx', folder_name))
+        doc.save(output_filename)
+        output_files.append(output_filename)
 
-    return output_filename
+    return output_files
 
 
 # Route to display upload form
@@ -178,23 +182,28 @@ def upload_file():
         return redirect(request.url)
 
     if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        file_path = os.path.join(excel_folder, file.filename)
+        name, _ = os.path.splitext(file.filename)
+        encoded_filename = urllib.parse.quote(file.filename)
+        filename = secure_filename(encoded_filename)
+        file_path = str(folders(excel_folder, filename, name))
         file.save(file_path)
 
         # Process the file and generate Word document
-        output_filename = process_excel(file_path)
-
-        # Send the generated document as a downloadable file
-        return send_file(output_filename, as_attachment=True)
-
+        output_files = process_excel(file_path, name)
+        if len(output_files) == 1:
+            return 'one file'
+            # return send_file(output_files[0], as_attachment=True)
+        else:
+            return 'many files'
+            # Optionally, you could zip the files and return the zip file
+            # from zipfile import ZipFile
+            # zip_filename = f'doc_result/Проект_ДКП_{datetime.now().strftime("%Y%m%d%H%M%S")}.zip'
+            # with ZipFile(zip_filename, 'w') as zipf:
+            #     for file in output_files:
+            #         zipf.write(file, os.path.basename(file))
+            # return send_file(zip_filename, as_attachment=True)
     return redirect(request.url)
 
 
 if __name__ == '__main__':
-    if not os.path.exists(excel_folder):
-        os.makedirs(excel_folder)
-    if not os.path.exists('doc_result'):
-        os.makedirs('doc_result')
-
     app.run(port=5656)
