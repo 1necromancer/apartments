@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Шаблон договоров</title>
+    <link rel="stylesheet" href="/static/style/home.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="nav-buttons">
+        <button class="button home" onclick="window.location.href='/'">
+            <i class="fas fa-home"></i> Домой
+        </button>
+        <button class="button contracts" onclick="window.location.href='/contracts'">
+            <i class="fas fa-file-contract"></i> Договоры
+        </button>
+    </div>
+    <div class="container">
+        <h1>Шаблон договоров</h1>
+
+        <form action="/add-template" method="POST" enctype="multipart/form-data">
+            <input type="file" name="file" required />
+            <button class="button" type="submit">Добавить</button>
+        </form>
+
+        <ul>
+            {% for file in files %}
+            <li>
+                <div class="file-name">{{ file }}</div>
+                <div class="actions">
+                    <a href="{{ url_for('download_file', filename=file) }}" class="button secondary">Скачать</a>
+                    <form action="{{ url_for('delete_file', filename=file) }}" method="POST" class="delete-form">
+                        <button class="button delete" type="submit" onclick="return confirmDelete()">Удалить</button>
+                    </form>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <script>
+        function confirmDelete() {
+            return confirm('Вы уверены, что хотите удалить этот документ? Это действие невозможно отменить.');
+        }
+    </script>
+</body>
+</html>

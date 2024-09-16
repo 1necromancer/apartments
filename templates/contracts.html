@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Создание договора</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/static/style/contracts.css" />
+</head>
+<body>
+    <div class="nav-buttons">
+        <button class="button home" onclick="window.location.href='/'">
+            <i class="fas fa-home"></i> Домой
+        </button>
+        <button class="button templates" onclick="window.location.href='/templates'">
+            <i class="fas fa-file-alt"></i> Шаблоны
+        </button>
+    </div>
+
+    <div class="container">
+        <h1>Загрузите excel файл</h1>
+        <form id="uploadForm" method="POST" enctype="multipart/form-data" action="/upload">
+            <label for="templateSelect" style="margin-bottom: 10px;">Выберите шаблон:</label>
+            <select id="templateSelect" name="template" required> </select>
+            <input type="file" name="file" accept=".xls,.xlsx,.csv" required>
+            <button type="submit">Создать договор</button>
+        </form>
+        <div class="progress" id="progress"></div>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <div class="loading-text" id="loadingText">Идет создание договоров...</div>
+    </div>
+    <script type="text/javascript" charset="UTF-8" src="{{ url_for('static', filename='scripts/script.js') }}"></script>
+</body>
+</html>
