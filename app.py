@@ -35,11 +35,34 @@ def list_templates():
     return jsonify(template_list)
 
 
+def create_template_folder():
+    if not os.path.exists(doc_template):
+        try:
+            os.makedirs(doc_template)
+        except Exception as e:
+            logs_to_json('create_template_folder', 'create_template_folder', str(e))
+
+
 @app.route('/templates')
 def templates():
-    # Get the list of documents in the 'doc_template' folder
-    files = os.listdir(doc_template)
-    return render_template('templates.html', files=files)
+    try:
+        create_template_folder()
+        files = os.listdir(doc_template)
+
+        page = request.args.get('page', 1, type=int)
+        per_page = 5
+        total_files = len(files)
+
+        start = (page - 1) * per_page
+        end = start + per_page
+        files_on_page = files[start:end]
+
+        has_prev = page > 1
+        has_next = end < total_files
+
+        return render_template('templates.html', files=files_on_page, page=page, has_prev=has_prev, has_next=has_next)
+    except Exception as e:
+        logs_to_json('templates_function', 'templates', str(e))
 
 
 @app.route('/download/<filename>')

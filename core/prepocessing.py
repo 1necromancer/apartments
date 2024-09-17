@@ -18,6 +18,7 @@ load_dotenv(dotenv_path=env_path)
 doc_result = os.getenv('DOC_RESULT')
 doc_template = os.getenv('DOC_TEMPLATE')
 
+
 def allowed_file(filename):
     try:
         return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -65,29 +66,33 @@ def process_excel(file_path, folder_name, template_name):
         dict_mappings = {}
         sheet_data = {}
 
-        # Load data from Excel or CSV
         if file_extension == 'csv':
             df_main = pd.read_csv(file_path)
         else:
-            # Read dictionary sheet
-            df_dictionary = pd.read_excel(file_path, sheet_name='dictionary')
+            sheet_names = ['главная', 'покупатель', 'продавец']
+
+            for sheet in sheet_names:
+                if sheet in ['покупатель', 'продавец']:
+                    df_sheet = pd.read_excel(file_path, sheet_name=sheet, header=None)
+                    df_sheet = df_sheet.T
+                    df_sheet.columns = df_sheet.iloc[0]
+                    df_sheet = df_sheet.drop(df_sheet.index[0])
+                    df_sheet.reset_index(drop=True, inplace=True)
+                else:
+                    df_sheet = pd.read_excel(file_path, sheet_name=sheet)
+
+                df_sheet.columns = df_sheet.columns.str.strip()
+                sheet_data[sheet] = df_sheet
+
+            df_dictionary = pd.read_excel(file_path, sheet_name='справочник')
             df_dictionary.columns = df_dictionary.columns.str.strip()
 
-            # Read main fact sheet
-            df_main = pd.read_excel(file_path, sheet_name='fact')
-            df_main.columns = df_main.columns.str.strip()
+            df_main = sheet_data['главная']
 
-            # Read other sheets once and store in memory
-            sheet_names = ['fact', 'buyer', 'seller']
-            for sheet in sheet_names:
-                sheet_data[sheet] = pd.read_excel(file_path, sheet_name=sheet)
-                sheet_data[sheet].columns = sheet_data[sheet].columns.str.strip()
-
-            # Populate dictionary mappings
             for _, row in df_dictionary.iterrows():
-                change_from = row['change_from'].strip()
-                change_to = row['change_to'].strip()
-                sheet_name = row['sheet_name'].strip()
+                change_from = row['поменять с'].strip()
+                change_to = row['поменять на'].strip()
+                sheet_name = row['название листа'].strip()
 
                 if sheet_name not in dict_mappings:
                     dict_mappings[sheet_name] = {}
@@ -95,28 +100,31 @@ def process_excel(file_path, folder_name, template_name):
 
         output_files = []
         processing_status['total_files'] = len(df_main)
+        change_to_value = None
+
         for index, row in df_main.iterrows():
             doc = Document(f'{doc_template}/{template_name}.docx')
 
-            # Apply dictionary-based replacements
             for sheet, replacements in dict_mappings.items():
-                if sheet == 'dictionary':  # Skip the dictionary sheet itself
-                    continue
-
                 if sheet in sheet_data:
                     df_sheet = sheet_data[sheet]
 
                     for change_from, change_to_column in replacements.items():
-                        if change_to_column in df_sheet.columns:
-                            change_to_values = df_sheet[change_to_column].tolist()
-                            for value in change_to_values:
-                                replace_text(doc, change_from, value)
+                        try:
+                            if sheet == 'главная':
+                                if index < len(df_sheet):
+                                    change_to_value = df_sheet[change_to_column].iloc[index]
+                            else:
+                                change_to_value = df_sheet[change_to_column].iloc[0]
+
+                            replace_text(doc, change_from, str(change_to_value))
+                        except Exception as e:
+                            logs_to_json('process_excel', 'perhaps column does not exist', str(e))
 
             set_formatting(doc)
-
-            output_filename = str(
-                folders(doc_result, f'{template_name}_{index + 1}_{datetime.now().strftime("%Y%m%d%H%M%S")}.docx',
-                        folder_name))
+            output_filename = folders(doc_result,
+                                      f'{template_name}_{index + 1}_{datetime.now().strftime("%Y%m%d%H%M%S")}.docx',
+                                      folder_name)
             doc.save(output_filename)
             output_files.append(output_filename)
 
@@ -124,5 +132,6 @@ def process_excel(file_path, folder_name, template_name):
 
         processing_status['status'] = 'Договоры созданы успешно!' if len(output_files) > 0 else 'Error'
         return output_files
+
     except Exception as e:
         logs_to_json('process_excel', 'process_excel', str(e))

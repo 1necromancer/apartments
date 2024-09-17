@@ -147,3 +147,32 @@ li:nth-child(even) {
 form, .actions a {
     margin-left: 5px;
 }
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.pagination a, .pagination span {
+    margin: 0 10px;
+    font-size: 16px;
+}
+
+.pagination a {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 15px;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+.pagination a:hover {
+    background-color: #45a049;
+}
+
+.pagination span {
+    font-weight: bold;
+}
+
