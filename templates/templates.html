@@ -13,8 +13,10 @@
         <button class="button home" onclick="window.location.href='/'">
             <i class="fas fa-home"></i> Домой
         </button>
-        <button class="button contracts" onclick="window.location.href='/contracts'">
-            <i class="fas fa-file-contract"></i> Договоры
+        <button class="button secondary" onclick="window.location.href='/processing'">
+            <i class="fas fa-cogs" style="margin-right: 10px;"></i>Обработка</button>
+        <button class="button third" onclick="window.location.href='/contracts'">
+            <i class="fas fa-file-contract" style="margin-right: 10px;"></i>Договоры</button>
         </button>
     </div>
     <div class="container">
@@ -22,7 +24,7 @@
 
         <form action="/add-template" method="POST" enctype="multipart/form-data">
             <input type="file" name="file" required />
-            <button class="button" type="submit">Добавить</button>
+            <button class="button third" type="submit">Добавить</button>
         </form>
 
         <ul>
@@ -30,7 +32,7 @@
             <li>
                 <div class="file-name">{{ file }}</div>
                 <div class="actions">
-                    <a href="{{ url_for('download_file', filename=file) }}" class="button secondary">Скачать</a>
+                    <a href="{{ url_for('download_file', filename=file) }}" class="button fourth">Скачать</a>
                     <form action="{{ url_for('delete_file', filename=file) }}" method="POST" class="delete-form">
                         <button class="button delete" type="submit" onclick="return confirmDelete()">Удалить</button>
                     </form>

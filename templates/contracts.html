@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Создание договора</title>
+    <title>Договоры</title>
+    <link rel="stylesheet" href="/static/style/home.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="/static/style/contracts.css" />
     <link rel="website icon" type="image/svg+xml" href="/static/icons/web.svg" />
 </head>
 <body>
@@ -13,26 +13,63 @@
         <button class="button home" onclick="window.location.href='/'">
             <i class="fas fa-home"></i> Домой
         </button>
-        <button class="button templates" onclick="window.location.href='/templates'">
-            <i class="fas fa-file-alt"></i> Шаблоны
-        </button>
+        <button class="button" onclick="window.location.href='/templates'">
+            <i class="fas fa-file-alt" style="margin-right: 10px;"></i>Шаблоны</button>
+        <button class="button secondary" onclick="window.location.href='/processing'">
+            <i class="fas fa-cogs" style="margin-right: 10px;"></i>Обработка</button>
     </div>
-
     <div class="container">
-        <h1>Загрузите excel файл</h1>
-        <form id="uploadForm" method="POST" enctype="multipart/form-data" action="/upload">
-            <label for="templateSelect" style="margin-bottom: 10px;">Выберите шаблон:</label>
-            <select id="templateSelect" name="template" required> </select>
-            <input type="file" name="file" accept=".xls,.xlsx,.csv" required>
-            <button type="submit">Создать договор</button>
-        </form>
-        <div class="progress" id="progress"></div>
-    </div>
+        <h1>Договоры</h1>
 
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="spinner"></div>
-        <div class="loading-text" id="loadingText">Идет создание договоров...</div>
+        {% if current_folder %}
+            <a href="{{ url_for('contracts') }}" class="button third">Вернуться в папки</a>
+        {% endif %}
+
+        {% if folders %}
+            <h2>Папки</h2>
+            <ul>
+                {% for folder in folders %}
+                <li>
+                    <a href="{{ url_for('contracts', folder=(current_folder + '/' + folder).strip('/')) }}" class="folder-name">
+                        {{ folder }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        {% if files %}
+            <h2>Файлы</h2>
+            <ul>
+                {% for file in files %}
+                <li>
+                    <div class="file-name">{{ file }}</div>
+                    <div class="actions">
+                        <a href="{{ url_for('download_contract', filename=current_folder + '/' + file) }}" class="button fourth">Скачать</a>
+                        <form action="{{ url_for('delete_contract', filename=current_folder + '/' + file) }}" method="POST" class="delete-form">
+                            <button class="button delete" type="submit" onclick="return confirmDelete()">Удалить</button>
+                        </form>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+            <div class="pagination">
+                {% if has_prev %}
+                    <a href="{{ url_for('contracts', folder=current_folder, page=page-1) }}" class="button">Пред.</a>
+                {% endif %}
+
+                <span>Страница {{ page }}</span>
+
+                {% if has_next %}
+                    <a href="{{ url_for('contracts', folder=current_folder, page=page+1) }}" class="button">След.</a>
+                {% endif %}
+            </div>
+        {% endif %}
     </div>
-    <script type="text/javascript" charset="UTF-8" src="{{ url_for('static', filename='scripts/script.js') }}"></script>
+    <script>
+        function confirmDelete() {
+            return confirm('Вы уверены, что хотите удалить этот документ? Это действие невозможно отменить.');
+        }
+    </script>
 </body>
 </html>

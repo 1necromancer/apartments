@@ -4,3 +4,4 @@ doc_result
 excel_files
 doc_template
 storage
+core/__pycache__/

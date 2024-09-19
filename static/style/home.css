@@ -26,7 +26,7 @@ body {
 
 .button.home {
     width: 130px;
-    background-color: #ff9800;
+    background-color: #778899;
     color: white;
     padding: 10px 20px;
     font-size: 16px;
@@ -43,7 +43,7 @@ body {
 }
 
 .button.home:hover {
-    background-color: #e68900;
+    background-color: #708090;
 }
 
 .button.contracts {
@@ -69,7 +69,7 @@ body {
 }
 
 .button {
-    background-color: #4CAF50;
+    background-color: #A52A2A;
     color: white;
     padding: 10px 20px;
     font-size: 16px;
@@ -81,15 +81,31 @@ body {
 }
 
 .button:hover {
-    background-color: #45a049;
+    background-color: #800000;
 }
 
 .button.secondary {
-    background-color: #008CBA;
+    background-color: #DAA520;
 }
 
 .button.secondary:hover {
-    background-color: #007bb5;
+    background-color: #B8860B;
+}
+
+.button.third {
+    background-color: #45a049;
+}
+
+.button.third:hover {
+    background-color: #006400;
+}
+
+.button.fourth {
+    background-color: #6495ED;
+}
+
+.button.fourth:hover {
+    background-color: #0000CD;
 }
 
 .button.delete {

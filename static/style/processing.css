@@ -125,15 +125,14 @@ button:hover {
 
 .nav-buttons {
     position: fixed;
-    top: 10px;
-    left: 10px;
+    top: 5px;
+    left: 5px;
     display: flex;
-    gap: 10px;
 }
 
 .button.home {
     width: 130px;
-    background-color: #ff9800;
+    background-color: #778899;
     color: white;
     padding: 10px 20px;
     font-size: 16px;
@@ -150,7 +149,7 @@ button:hover {
 }
 
 .button.home:hover {
-    background-color: #e68900;
+    background-color: #708090;
 }
 
 .button.templates {
@@ -189,4 +188,43 @@ select {
 select:focus {
     border-color: #4CAF50;
     outline: none;
+}
+.button {
+    background-color: #A52A2A;
+    color: white;
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    margin: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.button:hover {
+    background-color: #800000;
+}
+
+.button.secondary {
+    background-color: #DAA520;
+}
+
+.button.secondary:hover {
+    background-color: #B8860B;
+}
+
+.button.third {
+    background-color: #45a049;
+}
+
+.button.third:hover {
+    background-color: #006400;
+}
+
+.button.fourth {
+    background-color: #6495ED;
+}
+
+.button.fourth:hover {
+    background-color: #0000CD;
 }
