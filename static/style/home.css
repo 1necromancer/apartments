@@ -155,7 +155,13 @@ li:nth-child(even) {
     margin-left: 10px;
 }
 
-.file-name, .actions {
+.file-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.actions {
     display: flex;
     align-items: center;
 }
