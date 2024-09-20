@@ -1,10 +1,13 @@
-from flask import Flask, render_template, request, redirect, jsonify, send_from_directory, url_for, abort
+from flask import Flask, render_template, request, redirect, jsonify, send_from_directory, url_for, abort, send_file
 from core.prepocessing import allowed_file, process_excel, processing_status
 from layout.baseUtils import delete_excel_folder, folders, logs_to_json
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 import urllib.parse
 import threading
+import zipfile
+import shutil
+import io
 import os
 
 load_dotenv()
@@ -144,6 +147,45 @@ def delete_contract(filename):
 
     except Exception as e:
         logs_to_json('delete_contract_function', 'delete_contract', str(e))
+        abort(500)
+
+
+@app.route('/download_folder_files/<path:folder>', methods=['GET'])
+def download_folder_files(folder):
+    try:
+        folder_path = os.path.join(doc_result, folder)
+        if not os.path.exists(folder_path):
+            abort(404)
+
+        memory_file = io.BytesIO()
+        with zipfile.ZipFile(memory_file, 'w') as zipf:
+            for root, dirs, files in os.walk(folder_path):
+                for file in files:
+                    file_path = os.path.join(root, file)
+                    arcname = os.path.relpath(file_path, folder_path)
+                    zipf.write(file_path, arcname)
+
+        memory_file.seek(0)
+        return send_file(memory_file, as_attachment=True, download_name=f'{folder}.zip')
+
+    except Exception as e:
+        logs_to_json('save_all_function', 'save_all', str(e))
+        abort(500)
+
+
+@app.route('/delete_folder_files/<path:folder>', methods=['POST'])
+def delete_folder_files(folder):
+    try:
+        folder_path = os.path.join(doc_result, folder)
+
+        if not os.path.exists(folder_path):
+            abort(404)
+        shutil.rmtree(folder_path)
+
+        return redirect(url_for('contracts'))
+
+    except Exception as e:
+        logs_to_json('delete_all_function', 'delete_all', str(e))
         abort(500)
 
 

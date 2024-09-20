@@ -22,7 +22,16 @@
         <h1>Договоры</h1>
 
         {% if current_folder %}
-            <a href="{{ url_for('contracts') }}" class="button third">Вернуться в папки</a>
+            <div class="actions">
+                <a href="{{ url_for('contracts') }}" class="button fourth">Назад в папки</a>
+
+                <div class="button-group">
+                    <a href="{{ url_for('download_folder_files', folder=current_folder) }}" class="button third">Сохранить все</a>
+                    <form action="{{ url_for('delete_folder_files', folder=current_folder) }}" method="POST" class="delete-form">
+                        <button class="button" type="submit" onclick="return confirmDelete()">Удалить все</button>
+                    </form>
+                </div>
+            </div>
         {% endif %}
 
         {% if folders %}
@@ -68,7 +77,7 @@
     </div>
     <script>
         function confirmDelete() {
-            return confirm('Вы уверены, что хотите удалить этот документ? Это действие невозможно отменить.');
+            return confirm('Вы уверены, что хотите удалить? Это действие невозможно отменить.');
         }
     </script>
 </body>

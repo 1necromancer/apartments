@@ -89,6 +89,11 @@ def process_excel(file_path, folder_name, template_name):
 
             df_main = sheet_data['главная']
 
+            if df_main is not None:
+                df_main = df_main[df_main['Дата ДКП'].notna() & (df_main['Дата ДКП'] != '')]
+            else:
+                print("Sheet 'главная' not found in the file.")
+
             for _, row in df_dictionary.iterrows():
                 change_from = row['поменять с'].strip()
                 change_to = row['поменять на'].strip()

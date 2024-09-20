@@ -192,3 +192,12 @@ form, .actions a {
     font-weight: bold;
 }
 
+.actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.button-group {
+    display: flex;
+}
